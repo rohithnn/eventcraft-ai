@@ -1,0 +1,6 @@
+{
+  "name": "EventCraft AI",
+  "description": "GenAI-powered event planning assistant for weddings, birthdays, and community gatherings with intelligent budgets, backward-planned timelines, vendor checklists, and personalized theme ideas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
