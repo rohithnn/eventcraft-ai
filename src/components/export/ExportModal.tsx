@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { FullEventPlan } from '../../types/event';
-import { exportPlanToPdf, exportPlanToJson } from '../../services/pdfExport';
+import { exportPlanToPdf, exportPlanToJson, exportPlanToIcs } from '../../services/pdfExport';
 import { formatCurrency } from '../../utils/budgetUtils';
-import { FileText, Download, Printer, Copy, Check, Upload } from 'lucide-react';
+import { FullEventPlanSchema } from '../../schemas/eventSchema';
+import { FileText, Download, Printer, Copy, Check, Upload, Calendar } from 'lucide-react';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -26,6 +27,10 @@ export function ExportModal({ isOpen, onClose, plan, onImportPlan }: ExportModal
 
   const handleDownloadJson = () => {
     exportPlanToJson(plan);
+  };
+
+  const handleDownloadIcs = () => {
+    exportPlanToIcs(plan);
   };
 
   const handleCopySummary = () => {
@@ -56,13 +61,16 @@ ${plan.timeline.slice(0, 5).map((t) => `• [${t.dueDate}] ${t.title} (${t.statu
       try {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
-        if (parsed?.details?.title && Array.isArray(parsed?.budget)) {
+        const validation = FullEventPlanSchema.safeParse(parsed);
+        if (validation.success) {
           if (onImportPlan) {
-            onImportPlan(parsed as FullEventPlan);
+            onImportPlan(validation.data as FullEventPlan);
             onClose();
           }
         } else {
-          setImportError('Invalid plan file format.');
+          setImportError(
+            `Invalid plan format: ${validation.error.issues[0]?.message || 'Schema mismatch'}`
+          );
         }
       } catch (err) {
         setImportError('Failed to parse JSON file.');
@@ -138,6 +146,24 @@ ${plan.timeline.slice(0, 5).map((t) => `• [${t.dueDate}] ${t.title} (${t.statu
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Export machine-readable structured JSON backup to restore later.
+              </p>
+            </div>
+          </button>
+
+          {/* iCalendar (.ics) Export */}
+          <button
+            onClick={handleDownloadIcs}
+            className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-purple-500 dark:hover:border-purple-500 bg-white dark:bg-slate-900 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-all text-left flex items-start gap-3.5 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                Sync Calendar (.ics)
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Download timeline milestones for Google, Apple, or Outlook Calendar.
               </p>
             </div>
           </button>

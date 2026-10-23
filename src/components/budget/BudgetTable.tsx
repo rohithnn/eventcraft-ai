@@ -159,6 +159,7 @@ export function BudgetTable({
                         value={editNotes}
                         onChange={(e) => setEditNotes(e.target.value)}
                         placeholder="Add notes or vendor references..."
+                        aria-label={`Edit notes for ${item.categoryLabel}`}
                         className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
                       />
                     ) : (
@@ -215,6 +216,7 @@ export function BudgetTable({
             <input
               type="text"
               placeholder="Category Name (e.g. Wedding Favors)"
+              aria-label="New Category Name"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
@@ -225,6 +227,7 @@ export function BudgetTable({
             <input
               type="number"
               placeholder="Amount"
+              aria-label="New Category Amount"
               min="0"
               value={newAmount}
               onChange={(e) => setNewAmount(parseFloat(e.target.value) || 0)}

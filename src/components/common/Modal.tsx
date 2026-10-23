@@ -26,14 +26,51 @@ export function Modal({
       previousActiveElement.current = document.activeElement as HTMLElement;
       document.body.style.overflow = 'hidden';
 
+      // Auto-focus first focusable element inside modal
+      const focusTimer = setTimeout(() => {
+        if (modalRef.current) {
+          const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable.length > 0) {
+            focusable[0].focus();
+          }
+        }
+      }, 50);
+
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           onClose();
+          return;
+        }
+
+        // Trap Tab key cycling within modal
+        if (e.key === 'Tab' && modalRef.current) {
+          const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable.length === 0) return;
+
+          const firstElement = focusable[0];
+          const lastElement = focusable[focusable.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
         }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => {
+        clearTimeout(focusTimer);
         window.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = 'unset';
         if (previousActiveElement.current) {

@@ -84,9 +84,20 @@ export function rebalanceBudgetAllocations(
   items: BudgetItem[],
   newTotalBudget: number
 ): BudgetItem[] {
+  if (!items || items.length === 0) return [];
+
+  const safeNewTotal = Math.max(0, newTotalBudget);
+  if (safeNewTotal === 0) {
+    return items.map((it) => ({
+      ...it,
+      allocatedAmount: 0,
+      percentageOfBudget: 0,
+    }));
+  }
+
   const currentTotal = items.reduce((acc, it) => acc + (Number(it.allocatedAmount) || 0), 0);
   if (currentTotal <= 0) {
-    const perCategory = Math.floor(newTotalBudget / items.length);
+    const perCategory = Math.floor(safeNewTotal / items.length);
     return items.map((it) => ({
       ...it,
       allocatedAmount: perCategory,
@@ -94,13 +105,13 @@ export function rebalanceBudgetAllocations(
     }));
   }
 
-  const ratio = newTotalBudget / currentTotal;
+  const ratio = safeNewTotal / currentTotal;
   return items.map((it) => {
     const newAlloc = Math.round((Number(it.allocatedAmount) || 0) * ratio);
     return {
       ...it,
       allocatedAmount: newAlloc,
-      percentageOfBudget: Math.round((newAlloc / newTotalBudget) * 100),
+      percentageOfBudget: Math.round((newAlloc / safeNewTotal) * 100),
     };
   });
 }

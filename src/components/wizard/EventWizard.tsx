@@ -41,7 +41,7 @@ export function EventWizard({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleFieldChange = (field: keyof WizardInputData, value: any) => {
+  const handleFieldChange = <K extends keyof WizardInputData>(field: K, value: WizardInputData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error for that field
     if (errors[field]) {

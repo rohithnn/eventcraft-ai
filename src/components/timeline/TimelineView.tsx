@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TimelineTask, BudgetCategory } from '../../types/event';
+import { TimelineTask, BudgetCategory, PriorityLevel } from '../../types/event';
 import { TaskItem } from './TaskItem';
 import { calculateDueDate, formatFriendlyDate, calculateDaysRemaining } from '../../utils/dateUtils';
 import { Modal } from '../common/Modal';
@@ -271,7 +271,7 @@ export function TimelineView({
               </label>
               <select
                 value={newPriority}
-                onChange={(e) => setNewPriority(e.target.value as any)}
+                onChange={(e) => setNewPriority(e.target.value as PriorityLevel)}
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="high">High Priority</option>

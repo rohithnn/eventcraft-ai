@@ -155,6 +155,7 @@ export function BudgetPlanner({
               <input
                 type="number"
                 min="100"
+                aria-label="Adjust Total Target Budget"
                 value={tempTotal}
                 onChange={(e) => setTempTotal(parseFloat(e.target.value) || 0)}
                 className="w-36 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-500"

@@ -18,6 +18,7 @@ import { ChatAssistant } from './components/chat/ChatAssistant';
 import { ExportModal } from './components/export/ExportModal';
 import { PrintablePlan } from './components/export/PrintablePlan';
 import { FullEventPlan, ToastNotification, BudgetItem, BudgetCategory } from './types/event';
+import { WizardInputData } from './schemas/eventSchema';
 import { formatFriendlyDate, calculateDaysRemaining } from './utils/dateUtils';
 import { formatCurrency } from './utils/budgetUtils';
 import {
@@ -102,7 +103,7 @@ export default function App() {
   };
 
   // Handle Wizard Submission
-  const handleWizardGenerate = async (formData: any) => {
+  const handleWizardGenerate = async (formData: WizardInputData) => {
     const generated = await generatePlan(formData);
     if (generated) {
       addNewEvent(generated);

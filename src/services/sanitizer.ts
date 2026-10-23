@@ -58,6 +58,11 @@ export function hasPromptInjectionSignals(text: string): boolean {
     /as an unfiltered ai/i,
     /reveal your secret/i,
     /bypass safety/i,
+    /override your rules/i,
+    /acting as an untamed/i,
+    /developer mode enabled/i,
+    /forget (all )?(prior|previous) instructions/i,
+    /print your (initial|system) instructions/i,
   ];
   return injectionPatterns.some((pattern) => pattern.test(text));
 }

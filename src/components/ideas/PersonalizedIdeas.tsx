@@ -133,7 +133,7 @@ export function PersonalizedIdeas({
         {sections.map((sec) => (
           <button
             key={sec.key}
-            onClick={() => setActiveTab(sec.key as any)}
+            onClick={() => setActiveTab(sec.key)}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
               activeTab === sec.key
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'

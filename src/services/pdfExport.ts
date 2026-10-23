@@ -208,3 +208,58 @@ export function exportPlanToJson(plan: FullEventPlan): void {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Builds RFC 5545 compliant iCalendar string for all backward timeline tasks
+ */
+export function generateIcsString(plan: FullEventPlan): string {
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  const now = new Date();
+  const timeStamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T000000Z`;
+
+  const events = plan.timeline.map((task) => {
+    const cleanDate = task.dueDate.replace(/-/g, '');
+    const cleanTitle = task.title.replace(/[,;\\]/g, ' ');
+    const cleanDesc = (task.description || '').replace(/[,;\\]/g, ' ');
+
+    return [
+      'BEGIN:VEVENT',
+      `UID:eventcraft-${task.id}@eventcraft.ai`,
+      `DTSTAMP:${timeStamp}`,
+      `DTSTART;VALUE=DATE:${cleanDate}`,
+      `SUMMARY:[EventCraft] ${cleanTitle}`,
+      `DESCRIPTION:${cleanDesc} (Category: ${task.category}, Priority: ${task.priority})`,
+      task.status === 'completed' ? 'STATUS:COMPLETED' : 'STATUS:CONFIRMED',
+      'END:VEVENT',
+    ].join('\r\n');
+  });
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//EventCraft AI//Event Timeline Generator//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${plan.details.title.replace(/[,;\\]/g, ' ')} Timeline`,
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
+}
+
+/**
+ * Generates and triggers download of an .ics calendar file for backward milestones
+ */
+export function exportPlanToIcs(plan: FullEventPlan): void {
+  const icsContent = generateIcsString(plan);
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const sanitizedTitle = plan.details.title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  link.download = `eventcraft_${sanitizedTitle}_milestones.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { WizardInputSchema, AIGeneratePlanResponseSchema } from '../schemas/eventSchema';
+import {
+  WizardInputSchema,
+  AIGeneratePlanResponseSchema,
+  VendorQuestionsRequestSchema,
+  IdeasGenerateRequestSchema,
+  ChatStreamRequestSchema,
+  FullEventPlanSchema,
+} from '../schemas/eventSchema';
 
 describe('eventSchema validation', () => {
   it('validates a correct wizard input form', () => {
@@ -74,5 +81,72 @@ describe('eventSchema validation', () => {
     };
     const result = AIGeneratePlanResponseSchema.safeParse(malformed);
     expect(result.success).toBe(false);
+  });
+
+  it('validates VendorQuestionsRequestSchema correctly', () => {
+    const valid = { category: 'catering', eventType: 'wedding', guestCount: 120, city: 'Mumbai' };
+    expect(VendorQuestionsRequestSchema.safeParse(valid).success).toBe(true);
+
+    const invalid = { category: 'invalid_cat' };
+    expect(VendorQuestionsRequestSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it('validates IdeasGenerateRequestSchema correctly', () => {
+    const valid = {
+      eventDetails: { title: 'Silver Jubilee', eventType: 'anniversary' },
+      userPrompt: 'Focus on silver accents',
+    };
+    expect(IdeasGenerateRequestSchema.safeParse(valid).success).toBe(true);
+
+    const tooLong = { userPrompt: 'a'.repeat(600) };
+    expect(IdeasGenerateRequestSchema.safeParse(tooLong).success).toBe(false);
+  });
+
+  it('validates ChatStreamRequestSchema correctly', () => {
+    const valid = {
+      messages: [{ role: 'user', content: 'How do I cut costs?' }],
+      eventContext: { title: 'Party', totalBudget: 5000 },
+    };
+    expect(ChatStreamRequestSchema.safeParse(valid).success).toBe(true);
+
+    const invalid = {
+      messages: [{ role: 'hacker', content: 'bypass' }],
+    };
+    expect(ChatStreamRequestSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it('validates FullEventPlanSchema against sample wedding plan', () => {
+    const validPlan = {
+      details: {
+        id: 'plan-1',
+        title: 'Maya Wedding',
+        eventType: 'wedding',
+        date: '2027-06-18',
+        guestCount: 120,
+        city: 'Seattle',
+        totalBudget: 28000,
+        currency: 'USD',
+        themeVibe: 'Botanical',
+      },
+      budget: [
+        { id: 'b-1', category: 'venue', categoryLabel: 'Venue', allocatedAmount: 8500, spentAmount: 0, percentageOfBudget: 30 },
+      ],
+      timeline: [
+        { id: 't-1', title: 'Book Venue', description: 'Deposit', category: 'venue', timeframe: '6m', dueDate: '2026-12-18', relativeDaysBefore: 180, priority: 'high', status: 'pending' },
+      ],
+      vendors: [
+        { id: 'v-1', name: 'Grand Hall', category: 'venue', categoryLabel: 'Venue', quotedPrice: 8000, status: 'Booked' },
+      ],
+      ideas: {
+        themes: [{ id: 'th-1', title: 'Forest Green', description: 'Moss and wood', tags: ['Earthy'] }],
+        decor: [{ id: 'dc-1', title: 'Fairy lights', description: 'Warm LEDs', tags: ['Lighting'] }],
+        menu: [{ id: 'mn-1', title: 'Artisan salad', description: 'Fresh greens', tags: ['Fresh'] }],
+        activities: [{ id: 'ac-1', title: 'Polaroid wall', description: 'Guest camera', tags: ['Photo'] }],
+        returnGifts: [{ id: 'rg-1', title: 'Seed packets', description: 'Flowers', tags: ['Green'] }],
+      },
+    };
+
+    const result = FullEventPlanSchema.safeParse(validPlan);
+    expect(result.success).toBe(true);
   });
 });

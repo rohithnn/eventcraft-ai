@@ -39,12 +39,12 @@ export function useGemini() {
       setIsLoading(false);
       setLoadingMessage('');
       return plan;
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         setIsLoading(false);
         return null;
       }
-      const message = err.message || 'Failed to generate plan';
+      const message = err instanceof Error ? err.message : 'Failed to generate plan';
       setError(message);
       setIsLoading(false);
       return null;
@@ -64,12 +64,12 @@ export function useGemini() {
         setIsLoading(false);
         setLoadingMessage('');
         return ideas;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           setIsLoading(false);
           return null;
         }
-        setError(err.message || 'Failed to refresh ideas');
+        setError(err instanceof Error ? err.message : 'Failed to refresh ideas');
         setIsLoading(false);
         return null;
       }

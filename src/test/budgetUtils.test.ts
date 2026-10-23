@@ -58,4 +58,19 @@ describe('budgetUtils', () => {
     expect(rebalanced[1].allocatedAmount).toBe(6000);
     expect(rebalanced[2].allocatedAmount).toBe(4000);
   });
+
+  it('handles rebalancing edge cases gracefully (empty list, zero budget, zero allocations)', () => {
+    expect(rebalanceBudgetAllocations([], 10000)).toEqual([]);
+
+    const zeroBudget = rebalanceBudgetAllocations(mockBudgetItems, 0);
+    expect(zeroBudget.every((item) => item.allocatedAmount === 0)).toBe(true);
+
+    const zeroAllocItems: BudgetItem[] = [
+      { id: '1', category: 'venue', categoryLabel: 'Venue', allocatedAmount: 0, spentAmount: 0, percentageOfBudget: 0 },
+      { id: '2', category: 'catering', categoryLabel: 'Catering', allocatedAmount: 0, spentAmount: 0, percentageOfBudget: 0 },
+    ];
+    const evenlyDistributed = rebalanceBudgetAllocations(zeroAllocItems, 10000);
+    expect(evenlyDistributed[0].allocatedAmount).toBe(5000);
+    expect(evenlyDistributed[1].allocatedAmount).toBe(5000);
+  });
 });

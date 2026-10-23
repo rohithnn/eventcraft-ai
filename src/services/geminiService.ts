@@ -36,8 +36,8 @@ async function fetchWithRetry(
       return fetchWithRetry(url, options, retries - 1, delay * 2);
     }
     return res;
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
       throw err;
     }
     if (retries > 0) {
@@ -268,8 +268,8 @@ export async function getVendorQuestionsFromGemini(
         return json.questions;
       }
     }
-  } catch (err: any) {
-    if (err.name === 'AbortError') throw err;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') throw err;
   }
 
   return DEFAULT_VENDOR_QUESTIONS[category] || DEFAULT_VENDOR_QUESTIONS.venue;
@@ -303,42 +303,27 @@ export async function regenerateIdeasFromGemini(
   const json = await res.json();
   const rawIdeas = json.ideas || {};
 
+  interface RawIdeaItem {
+    title?: string;
+    description?: string;
+    tags?: string[];
+  }
+
+  const mapItems = (items: RawIdeaItem[] | undefined, prefix: string) =>
+    (items || []).map((i: RawIdeaItem, idx: number) => ({
+      id: `${prefix}-new-${Date.now()}-${idx}`,
+      title: sanitizeUserInput(i.title || '', 80),
+      description: sanitizeUserInput(i.description || '', 400),
+      tags: i.tags || [],
+      isPinned: false,
+    }));
+
   return {
-    themes: (rawIdeas.themes || []).map((i: any, idx: number) => ({
-      id: `th-new-${Date.now()}-${idx}`,
-      title: sanitizeUserInput(i.title, 80),
-      description: sanitizeUserInput(i.description, 400),
-      tags: i.tags || [],
-      isPinned: false,
-    })),
-    decor: (rawIdeas.decor || []).map((i: any, idx: number) => ({
-      id: `dc-new-${Date.now()}-${idx}`,
-      title: sanitizeUserInput(i.title, 80),
-      description: sanitizeUserInput(i.description, 400),
-      tags: i.tags || [],
-      isPinned: false,
-    })),
-    menu: (rawIdeas.menu || []).map((i: any, idx: number) => ({
-      id: `mn-new-${Date.now()}-${idx}`,
-      title: sanitizeUserInput(i.title, 80),
-      description: sanitizeUserInput(i.description, 400),
-      tags: i.tags || [],
-      isPinned: false,
-    })),
-    activities: (rawIdeas.activities || []).map((i: any, idx: number) => ({
-      id: `ac-new-${Date.now()}-${idx}`,
-      title: sanitizeUserInput(i.title, 80),
-      description: sanitizeUserInput(i.description, 400),
-      tags: i.tags || [],
-      isPinned: false,
-    })),
-    returnGifts: (rawIdeas.returnGifts || []).map((i: any, idx: number) => ({
-      id: `rg-new-${Date.now()}-${idx}`,
-      title: sanitizeUserInput(i.title, 80),
-      description: sanitizeUserInput(i.description, 400),
-      tags: i.tags || [],
-      isPinned: false,
-    })),
+    themes: mapItems(rawIdeas.themes, 'th'),
+    decor: mapItems(rawIdeas.decor, 'dc'),
+    menu: mapItems(rawIdeas.menu, 'mn'),
+    activities: mapItems(rawIdeas.activities, 'ac'),
+    returnGifts: mapItems(rawIdeas.returnGifts, 'rg'),
   };
 }
 
@@ -402,10 +387,12 @@ export async function streamChatResponse(
       }
     }
     onDone();
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
-      return;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      if (err.name === 'AbortError') return;
+      onError(err.message || 'Error communicating with assistant');
+    } else {
+      onError('Error communicating with assistant');
     }
-    onError(err.message || 'Error communicating with assistant');
   }
 }

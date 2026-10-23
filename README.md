@@ -88,7 +88,8 @@
 
 8. **Export & Sharing**
    - Download complete 4-part PDF dossiers generated client-side with `jspdf`.
-   - Export/import structured `.json` backup files.
+   - Export/import structured `.json` backup files validated with strict Zod schemas.
+   - Sync backward-planned milestones to Google, Apple, or Outlook Calendar via RFC 5545 `.ics` calendar files.
    - Print-friendly stylesheets (`@media print`) and clean paper print layouts.
    - Copy plain text summary to clipboard for email or instant messaging.
 
@@ -97,7 +98,10 @@
 ## Security & Prompt Injection Defense
 
 - **Zero Client-Side Key Exposure**: The Gemini API key (`GEMINI_API_KEY`) is strictly accessed on the Node.js backend.
-- **Prompt-Injection Guard**: Server system instructions strictly enforce the event planning role, directing Gemini to ignore any prompt attempts attempting persona switches, instruction overrides, or data exfiltration.
+- **Server Rate Limiter**: Express in-memory sliding-window IP rate limiter on all `/api/*` routes (100 req/min) prevents quota exhaustion and brute-force DoS.
+- **Comprehensive Security Headers**: Content-Security-Policy (CSP), Referrer-Policy, Permissions-Policy, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: SAMEORIGIN`.
+- **Server-Side Request Validation**: Every endpoint (`/api/plan/generate`, `/api/vendor/questions`, `/api/ideas/generate`, `/api/chat/stream`) validates request payloads with Zod schemas.
+- **Prompt-Injection Guard**: Server system instructions strictly enforce the event planning role, directing Gemini to ignore prompt attempts trying to alter instructions or switch personas. Multi-pattern regex scanner rejects injection attacks (`DAN mode`, `developer mode`, `system prompt override`).
 - **Sanitization Layer**:
   - `sanitizeUserInput`: Truncates inputs to strict boundaries and strips control characters.
   - `escapeHtml`: Escapes special characters (`& < > " ' /`) to prevent cross-site scripting (XSS).
@@ -112,7 +116,8 @@
 - **Keyboard Navigation & Focus Management**:
   - Visible focus rings (`focus-visible:ring-2 focus-visible:ring-rose-500`).
   - Accessible Skip-to-Content link (`#main-content`).
-  - Dialog focus trapping and `Escape` key close handlers on all modals.
+  - Strict modal Tab focus cycling (traps focus within active modal and restores previous focus upon close).
+  - Dialog `Escape` key close handlers on all modals.
 - **Non-Color Dependent Indicators**: Over-budget states, task completion, and priority levels pair colors with icons (`AlertTriangle`, `CheckCircle2`) and explicit descriptive text.
 - **Data Table Fallback**: The Donut Chart provides descriptive ARIA labels, tab-focusable slices, and a full companion data table fallback.
 - **Color Contrast & Dark Mode**: Minimum 4.5:1 contrast ratios in both light and dark modes with system preference auto-detection.
@@ -122,16 +127,17 @@
 
 ## Testing
 
-The project is backed by a suite of 25+ automated tests using **Vitest** and **React Testing Library**:
+The project is backed by a suite of 41 automated tests across 9 test files using **Vitest** and **React Testing Library**:
 
-- **Budget Math & Over-Budget Logic** (`src/test/budgetUtils.test.ts`): Over-allocation detection, negative balances, percentage recalculations, formatting.
+- **Budget Math & Over-Budget Logic** (`src/test/budgetUtils.test.ts`): Over-allocation detection, negative balances, percentage recalculations, zero/empty edge cases, proportional rebalancing.
 - **Backward Timeline Calculations** (`src/test/dateUtils.test.ts`): Anchor date subtractions, countdowns, overdue checks.
-- **Zod Schema Validation** (`src/test/eventSchema.test.ts`): Form boundaries, valid AI schema verification, malformed schema rejection.
+- **iCalendar Export Verification** (`src/test/calendarExport.test.ts`): RFC 5545 format compliance, event count parity, date format sanitization.
+- **Zod Schema Validation** (`src/test/eventSchema.test.ts`): Wizard inputs, vendor questions schemas, ideas schemas, chat stream schemas, and full event plan recovery schemas.
 - **Storage Resilience** (`src/test/storageService.test.ts`): Corrupted JSON recovery, multi-event mutations, active ID persistence.
-- **Input Sanitizer & Guard** (`src/test/sanitizer.test.ts`): Script tag stripping, XSS escapes, prompt injection signature detection.
+- **Input Sanitizer & Guard** (`src/test/sanitizer.test.ts`): Script tag stripping, XSS escapes, adversarial prompt injection pattern detection.
 - **Gemini Service Layer** (`src/test/geminiService.test.ts`): Mocked generation, 429 rate limit backoff, in-memory caching.
-- **Component Behaviors** (`src/test/components.test.ts`): Task toggles, Donut Chart SVG accessibility, ErrorBoundary fallbacks.
-- **End-to-End Workflow** (`src/test/e2eFlow.test.ts`): Event selection -> Budget modification -> Over-budget badge assertion -> PDF export trigger.
+- **Component Behaviors** (`src/test/components.test.tsx`): Task toggles, Donut Chart SVG accessibility, ErrorBoundary fallbacks.
+- **End-to-End Workflow** (`src/test/e2eFlow.test.tsx`): Event selection -> Budget modification -> Over-budget badge assertion -> Export modal.
 
 To run tests:
 ```bash

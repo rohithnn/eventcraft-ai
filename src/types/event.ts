@@ -24,6 +24,8 @@ export interface BudgetItem {
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 
+export type PriorityLevel = 'low' | 'medium' | 'high';
+
 export interface TimelineTask {
   id: string;
   title: string;
@@ -33,7 +35,7 @@ export interface TimelineTask {
   relativeDaysBefore: number; // e.g. 180, 90, 30, 7, 0
   dueDate: string; // ISO date string YYYY-MM-DD
   status: TaskStatus;
-  priority: 'low' | 'medium' | 'high';
+  priority: PriorityLevel;
   assignedTo?: string;
 }
 
